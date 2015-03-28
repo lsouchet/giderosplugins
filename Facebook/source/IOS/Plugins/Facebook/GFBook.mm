@@ -169,6 +169,62 @@ static const NSArray *publishPermissions = @[@"publish_actions", @"publish_strea
             [connection start];
         }
     }
+}
+
+-(void)publishStory:(NSDictionary*)params {
+    if (FBSession.activeSession.state == FBSessionStateOpen ||
+        FBSession.activeSession.state == FBSessionStateOpenTokenExtended) {
+        if ([FBSession.activeSession.permissions indexOfObject:@"publish_actions"] == NSNotFound) {
+            // if we don't already have the permission, then we request it now
+            [FBSession.activeSession requestNewPublishPermissions:self.writePermissions
+                                                  defaultAudience:FBSessionDefaultAudienceFriends
+                                                completionHandler:^(FBSession *session, NSError *error) {
+                                                    if (!error) {
+                                                        [self publishStory:params];
+                                                    } else {
+                                                        gfacebook_onRequestError("publishStory.uploadImage", [error.description UTF8String]);
+                                                    }
+                                                }];
+        } else {
+            UIImage *image = [UIImage imageWithContentsOfFile:[params objectForKey:@"path"]];
+            [FBRequestConnection startForUploadStagingResourceWithImage:image
+                                                      completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
+                                                          if(error) {
+                                                              NSLog(@"Error staging resource.\n%@", error);
+                                                          } else {
+                                                              NSLog(@"Successfuly staged image with staged URI: %@", [result objectForKey:@"uri"]);
+                                                              NSString* stagedImageId = [result objectForKey:@"uri"];
+                                                              NSLog(@"Staged Image URI: %@", stagedImageId);
+                                                              NSString* appIdName = [params objectForKey:@"appId"];
+                                                              NSString* objectName = [params objectForKey:@"object"];
+                                                              NSString* actionName = [params objectForKey:@"action"];
+                                                              NSMutableDictionary<FBOpenGraphObject> *object = [FBGraphObject openGraphObjectForPost];
+                                                              object[@"type"] = [NSString stringWithFormat:@"%@:%@",appIdName, objectName];
+                                                              object[@"title"] = [params objectForKey:@"title"];
+                                                              object[@"image"] = @[@{@"url": stagedImageId, @"user_generated" : @"true" }];
+                                                              object[@"description"] = [params objectForKey:@"description"];
+                                                              [object setObject: @"true" forKey: @"fb:explicitly_shared"];
+                                                              NSMutableDictionary<FBGraphObject> *action = [FBGraphObject graphObject];
+                                                              action[objectName] = object;
+                                                              [FBRequestConnection startForPostWithGraphPath:[NSString stringWithFormat:@"/me/%@:%@", appIdName, actionName]
+                                                                                                 graphObject:action
+                                                                                           completionHandler:^(FBRequestConnection *connection,
+                                                                                                               id result,
+                                                                                                               NSError *error) {
+                                                                                               NSInteger errorCode = [error.userInfo[@"com.facebook.sdk:ParsedJSONResponseKey"][@"body"][@"error"][@"code"] integerValue];
+                                                                                               NSLog(@"action callback error code:%d", errorCode);
+                                                                                               if(error && errorCode != 332) {
+                                                                                                   NSLog(@"Error: %@", error.description);
+                                                                                                   gfacebook_onRequestError("publishStory", [error.description UTF8String]);
+                                                                                               } else {
+                                                                                                   gfacebook_onRequestComplete("publishStory", "Success");
+                                                                                               }
+                                                                                           }];
+                                                          }
+                                                      }
+             ];
+        }
+    }
 
 }
 

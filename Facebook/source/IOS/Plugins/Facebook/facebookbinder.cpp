@@ -98,6 +98,11 @@ public:
         gfacebook_dialog(action, params);
     }
     
+    void publishStory(gfacebook_Parameter *params)
+    {
+        gfacebook_publishStory(params);
+    }
+
     void request(const char *graphPath, gfacebook_Parameter *params, int httpMethod)
     {
         gfacebook_request(graphPath, params, httpMethod);
@@ -380,6 +385,24 @@ static int dialog(lua_State *L)
     return 0;
 }
 
+static int publishStory(lua_State *L)
+{
+    GFacebook *facebook = getInstance(L, 1);
+    std::map<std::string, std::string> params = tableToMap(L, 2);
+    std::vector<gfacebook_Parameter> params2;
+    std::map<std::string, std::string>::iterator iter, e = params.end();
+    for (iter = params.begin(); iter != e; ++iter)
+    {
+        gfacebook_Parameter param = {iter->first.c_str(), iter->second.c_str()};
+        params2.push_back(param);
+    }
+    gfacebook_Parameter param = {NULL, NULL};
+    params2.push_back(param);
+    facebook->publishStory(&params2[0]);
+    return 0;
+}
+
+
 static int dialog(lua_State *L, const char* action)
 {
     GFacebook *facebook = getInstance(L, 1);
@@ -577,6 +600,7 @@ static int loader(lua_State *L)
         {"getAccessToken", getAccessToken},
         {"getExpirationDate", getExpirationDate},
         {"dialog", dialog},
+        {"publishStory", publishStory},
         {"get", request},
         {"post", post},
         {"delete", deleteRequest},

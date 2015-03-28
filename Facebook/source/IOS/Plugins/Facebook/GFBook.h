@@ -7,6 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <FBSDKCoreKit/FBSDKCoreKit.h>
+#import <FBSDKShareKit/FBSDKShareKit.h>
 #import <FacebookSDK/FacebookSDK.h>
 
 @interface GFBook : NSObject<FBWebDialogsDelegate>
@@ -21,6 +23,7 @@
 -(NSTimeInterval)getExpirationDate;
 -(void)upload:(NSString*)path with:(NSString*)orig;
 -(void)dialog:(NSString*)path withParams:(NSDictionary*)params;
+-(void)publishStory:(NSDictionary*)params;
 -(void)request:(NSString*)path forMethod:(int)method withParams:(NSDictionary*)params;
 -(void)sessionStateChanged:(FBSession*)session state:(FBSessionState)state error:(NSError*)error;
 -(void)handleOpenUrl:(NSURL*)url;

@@ -58,6 +58,7 @@ G_API time_t gfacebook_getExpirationDate();
 
 G_API void gfacebook_upload(const char *path, const char *orig);    
 G_API void gfacebook_dialog(const char *action, const gfacebook_Parameter *params);
+G_API void gfacebook_publishStory(const gfacebook_Parameter *params);
 G_API void gfacebook_request(const char *graphPath, const gfacebook_Parameter *params, int method);
     
 G_API void gfacebook_onLoginComplete();

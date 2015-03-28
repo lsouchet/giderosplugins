@@ -70,6 +70,20 @@ public:
         [fb dialog:[NSString stringWithUTF8String:action] withParams:dic];
     }
 
+    void publishStory(const gfacebook_Parameter *params)
+    {
+        NSMutableDictionary *dic = [NSMutableDictionary dictionary];
+        if(params)
+        {
+            while (params->key)
+            {
+                [dic setObject:[NSString stringWithUTF8String:params->value] forKey:[NSString stringWithUTF8String:params->key]];
+                params++;
+            }
+        }
+        [fb publishStory:dic];
+    }
+
     void request(const char *graphPath, const gfacebook_Parameter *params, int httpMethod)
     {
         NSMutableDictionary *dic = [NSMutableDictionary dictionary];
@@ -256,6 +270,11 @@ time_t gfacebook_getExpirationDate(){
 void gfacebook_dialog(const char *action, const gfacebook_Parameter *params)
 {
     s_facebook->dialog(action, params);
+}
+
+void gfacebook_publishStory(const gfacebook_Parameter *params)
+{
+    s_facebook->publishStory(params);
 }
 
 void gfacebook_request(const char *graphPath, const gfacebook_Parameter *params, int httpMethod)

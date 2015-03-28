@@ -54,3 +54,22 @@ text2:addEventListener(Event.TOUCHES_BEGIN, function(e)
 		facebook:postPhoto("ball.png", {message = "Test"})
 	end
 end)
+
+local text3 = TextField.new(nil, "Publish story")
+text3:setScale(3)
+text3:setPosition(10, 250)
+stage:addChild(text3)
+text3:addEventListener(Event.TOUCHES_BEGIN, function(e)
+	if text3:hitTestPoint(e.touch.x, e.touch.y) then
+		print("publish story")
+		facebook:publishStory({
+		--appId, object and action as configured on your facebook developer "opengraph" console
+		    appId = "yourAppOpenGraphPrefix",
+		    object = "openGraphObjectName",
+			action = "openGraphActionName",
+			title = "This is a story",
+			description = "This is a description",
+			path = "ball.png"
+		})
+	end
+end)
